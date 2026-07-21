@@ -18,7 +18,7 @@ jobs:
     steps:
       - uses: actions/checkout@v4
       - uses: actions/configure-pages@v4
-      - uses: actions/upload-pages-artifact@v1
+      - uses: actions/upload-pages-artifact@v5
         with:
           path: .
 
@@ -29,4 +29,4 @@ jobs:
       name: github-pages
     steps:
       - uses: actions/download-pages-artifact@v1
-      - uses: actions/deploy-pages@v1
+      - uses: actions/deploy-pages@v4
