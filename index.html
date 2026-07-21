@@ -1,0 +1,178 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Volume Slider</title>
+    <meta name="description" content="A professionally overengineered volume adjustment experience built with modern browser APIs." />
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Segoe+UI:wght@400;500;600;700&display=swap"
+      rel="stylesheet"
+    />
+    <link rel="stylesheet" href="./style.css" />
+    <script src="https://www.google.com/recaptcha/api.js?render=explicit" async defer></script>
+  </head>
+  <body>
+    <div class="app-shell">
+      <header class="app-header">
+        <div>
+          <p class="eyebrow">Windows 11 Security Experience</p>
+          <h1>Volume Slider</h1>
+        </div>
+        <div class="header-badges">
+          <span class="pill">Version 4.2</span>
+        </div>
+      </header>
+
+      <main class="main-grid">
+        <section class="panel panel-primary">
+          <div class="panel-header">
+            <div>
+              <p class="eyebrow">Output</p>
+              <h2>Sound settings</h2>
+            </div>
+            <div class="status-pill" id="status-pill">Ready</div>
+          </div>
+
+          <div class="volume-card">
+            <div class="volume-icon" aria-hidden="true">
+              <svg viewBox="0 0 24 24" fill="none">
+                <path d="M14 3.5v17a1 1 0 0 1-1.6.8L7.2 15H3.5a1 1 0 0 1-1-1V10a1 1 0 0 1 1-1h3.7l5.2-6.3A1 1 0 0 1 14 3.5Z" stroke="currentColor" stroke-width="1.7" />
+                <path d="M18.5 7.5a7 7 0 0 1 0 9" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" />
+                <path d="M16.5 9.5a3.5 3.5 0 0 1 0 5" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" />
+              </svg>
+            </div>
+            <label class="sr-only" for="volume-slider">Volume level</label>
+            <input id="volume-slider" type="range" min="0" max="100" value="50" aria-label="Volume level" />
+            <div class="value-stack">
+              <span class="value-label">Current level</span>
+              <strong id="volume-value">50</strong>
+            </div>
+          </div>
+        </section>
+
+        <aside class="panel settings-panel">
+          <div class="panel-header compact">
+            <div>
+              <p class="eyebrow">Preferences</p>
+              <h2>Settings</h2>
+            </div>
+          </div>
+
+          <label class="setting-row" for="dark-mode-toggle">
+            <span>Dark mode</span>
+            <input id="dark-mode-toggle" type="checkbox" />
+          </label>
+
+          <label class="setting-row" for="windows-mode-toggle">
+            <span>Windows-style UI</span>
+            <input id="windows-mode-toggle" type="checkbox" />
+          </label>
+
+        </aside>
+      </main>
+
+    </div>
+
+    <div id="dialog-layer" class="dialog-layer" aria-live="polite"></div>
+
+    <template id="confirmation-template">
+      <div class="dialog-card" role="dialog" aria-modal="true">
+        <div class="dialog-icon">🛡️</div>
+        <h3>Administrator confirmation required</h3>
+        <p>To continue, a verified administrator must approve this audio policy adjustment.</p>
+        <div class="dialog-actions">
+          <button class="button primary" data-action="confirm">Approve</button>
+          <button class="button secondary" data-action="cancel">Cancel</button>
+        </div>
+      </div>
+    </template>
+
+    <template id="captcha-template">
+      <div class="dialog-card" role="dialog" aria-modal="true">
+        <div class="dialog-icon">🧠</div>
+        <h3>Human verification</h3>
+        <p>Complete the reCAPTCHA challenge to prove this request is being made by a person.</p>
+        <div id="captcha-container" class="captcha-container"></div>
+        <p id="captcha-status" class="dialog-status">Loading verification widget…</p>
+        <div class="dialog-actions">
+          <button class="button primary" data-action="captcha-next">Continue</button>
+          <button class="button secondary" data-action="cancel">Cancel</button>
+        </div>
+      </div>
+    </template>
+
+    <template id="email-template">
+      <div class="dialog-card" role="dialog" aria-modal="true">
+        <div class="dialog-icon">✉️</div>
+        <h3>Email verification</h3>
+        <p>Enter an email address to receive a one-time code. This is used only for the demo verification flow.</p>
+        <input id="email-input" type="email" placeholder="name@example.com" />
+        <p id="email-status" class="dialog-status">Awaiting email address.</p>
+        <div class="dialog-actions">
+          <button class="button primary" data-action="email-send">Send code</button>
+          <button class="button secondary" data-action="cancel">Cancel</button>
+        </div>
+      </div>
+    </template>
+
+    <template id="otp-template">
+      <div class="dialog-card" role="dialog" aria-modal="true">
+        <div class="dialog-icon">🔐</div>
+        <h3>Enter your code</h3>
+        <p>Use the six-digit code sent to your email. It expires after 10 minutes.</p>
+        <input id="otp-input" inputmode="numeric" maxlength="6" placeholder="123456" />
+        <p id="otp-status" class="dialog-status">Waiting for verification.</p>
+        <div class="dialog-actions">
+          <button class="button primary" data-action="otp-verify">Verify</button>
+          <button class="button secondary" data-action="cancel">Cancel</button>
+        </div>
+      </div>
+    </template>
+
+    <template id="webauthn-template">
+      <div class="dialog-card" role="dialog" aria-modal="true">
+        <div class="dialog-icon">🪪</div>
+        <h3>Windows Hello / passkey check</h3>
+        <p>Browser support is checked with WebAuthn. This step is harmless and only confirms whether your environment supports platform authenticators.</p>
+        <p id="webauthn-status" class="dialog-status">Checking support…</p>
+        <div class="dialog-actions">
+          <button class="button primary" data-action="webauthn-next">Continue</button>
+          <button class="button secondary" data-action="cancel">Cancel</button>
+        </div>
+      </div>
+    </template>
+
+    <template id="final-template">
+      <div class="dialog-card" role="dialog" aria-modal="true">
+        <div class="dialog-icon">✅</div>
+        <h3>Final confirmation</h3>
+        <p>Confirm that the volume adjustment request should be finalized. No system file changes are being made.</p>
+        <div class="dialog-actions">
+          <button class="button primary" data-action="final-confirm">Finalize</button>
+          <button class="button secondary" data-action="cancel">Cancel</button>
+        </div>
+      </div>
+    </template>
+
+    <script src="https://cdn.jsdelivr.net/npm/emailjs-com@3/dist/email.min.js"></script>
+    <script>
+      window.__EMAILJS_SERVICE_ID__ = 'service_ku90h7i';
+      window.__EMAILJS_TEMPLATE_ID__ = 'template_ls95jmv';
+      window.__EMAILJS_PUBLIC_KEY__ = 'jbymrDkHWz4i017eg';
+      if (window.emailjs) {
+        window.emailjs.init(window.__EMAILJS_PUBLIC_KEY__);
+      }
+    </script>
+    <!-- Replace the placeholders below with your reCAPTCHA site key and the Cloudflare Worker URL after deployment -->
+    <script>
+      // public site key for the widget (safe for client-side)
+      window.__RECAPTCHA_SITE_KEY__ = window.__RECAPTCHA_SITE_KEY__ || '6Lc_sF4tAAAAABtOXY2AZRHuIqsQIlJgk0lt7Cef';
+      // verification endpoint (Cloudflare Worker or other serverless function) that holds the secret
+      window.__RECAPTCHA_VERIFY_URL__ = window.__RECAPTCHA_VERIFY_URL__ || 'https://worst-volume-slider-verify.mohamed-xbo25.workers.dev/verify-captcha';
+    </script>
+    <script type="module" src="./script.js"></script>
+  </body>
+</html>

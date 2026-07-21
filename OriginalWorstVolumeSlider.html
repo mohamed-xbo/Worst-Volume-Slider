@@ -1,0 +1,417 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <title>Settings</title>
+  <style>
+    /* Fake Windows 11 UI Variables */
+    :root {
+      --win-bg: #F3F3F3;
+      --win-surface: #FFFFFF;
+      --win-text: #000000;
+      --win-text-secondary: #5D5D5D;
+      --win-accent: #005FB8;
+      --win-accent-hover: #0053A0;
+      --win-border: #E5E5E5;
+      --win-control-bg: #FBFBFB;
+      --win-control-border: #D1D1D1;
+      --error: #D13438;
+      --success: #107C10;
+    }
+
+    /* Animations */
+    @keyframes windowFadeIn {
+      from { opacity: 0; transform: translateY(20px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+
+    @keyframes dialogSlide {
+      from { opacity: 0; transform: scale(0.95); }
+      to { opacity: 1; transform: scale(1); }
+    }
+
+    @keyframes warningPulse {
+      0% { border-color: var(--win-control-border); }
+      50% { border-color: var(--error); }
+      100% { border-color: var(--win-control-border); }
+    }
+
+    body {
+      font-family: 'Segoe UI Variable', 'Segoe UI', system-ui, sans-serif;
+      background-color: var(--win-bg);
+      color: var(--win-text);
+      display: flex;
+      justify-content: center;
+      padding: 20px;
+      margin: 0;
+      min-height: 100vh;
+      box-sizing: border-box;
+    }
+
+    /* Mobile Warning Overlay */
+    #mobile-warning {
+      display: none;
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background: rgba(255, 255, 255, 0.98);
+      z-index: 10000;
+      flex-direction: column;
+      justify-content: center;
+      align-items: center;
+      text-align: center;
+      padding: 40px;
+    }
+
+    #mobile-warning .warning-card {
+      background: white;
+      border: 1px solid var(--win-border);
+      padding: 30px;
+      border-radius: 8px;
+      box-shadow: 0 10px 30px rgba(0,0,0,0.1);
+      max-width: 400px;
+      animation: warningPulse 3s infinite;
+    }
+
+    #mobile-warning h2 { color: var(--error); margin-bottom: 10px; }
+
+    /* Main Settings Window Container */
+    .settings-window {
+      background: var(--win-surface);
+      border: 1px solid var(--win-border);
+      border-radius: 8px;
+      width: 100%;
+      max-width: 800px;
+      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
+      overflow: hidden;
+      display: flex;
+      flex-direction: column;
+      animation: windowFadeIn 0.5s ease-out;
+    }
+
+    .header {
+      padding: 16px 24px;
+      font-size: 20px;
+      font-weight: 600;
+      border-bottom: 1px solid var(--win-border);
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+
+    .version {
+      font-size: 11px;
+      font-weight: normal;
+      color: var(--win-text-secondary);
+      background: #eeeeee;
+      padding: 2px 8px;
+      border-radius: 10px;
+    }
+
+    .content {
+      padding: 24px;
+      flex-grow: 1;
+    }
+
+    h3 {
+      font-size: 14px;
+      font-weight: 600;
+      margin: 0 0 16px 0;
+    }
+
+    .slider-container {
+      display: flex;
+      align-items: center;
+      gap: 16px;
+      margin-bottom: 8px;
+    }
+
+    .icon-speaker { font-size: 24px; }
+
+    input[type=range] {
+      width: 100%;
+      height: 4px;
+      background: var(--win-border);
+      border-radius: 2px;
+      outline: none;
+      cursor: pointer;
+    }
+    input[type=range]::-webkit-slider-thumb {
+      -webkit-appearance: none;
+      width: 18px;
+      height: 18px;
+      border-radius: 50%;
+      background: var(--win-accent);
+      cursor: pointer;
+      border: 4px solid var(--win-surface);
+      box-shadow: 0 0 0 1px var(--win-border);
+    }
+    input[type=range]:disabled { opacity: 0.5; cursor: not-allowed; }
+
+    .credits {
+      font-size: 12px;
+      color: var(--win-text-secondary);
+      margin-top: 4px;
+      line-height: 1.5;
+    }
+
+    .dialog-box {
+      display: none;
+      background: var(--win-control-bg);
+      border: 1px solid var(--win-control-border);
+      border-radius: 4px;
+      padding: 20px;
+      margin-top: 24px;
+      animation: dialogSlide 0.3s ease-out;
+    }
+
+    input[type=text], input[type=number], input[type=email] {
+      width: 100%;
+      max-width: 300px;
+      padding: 8px 12px;
+      margin: 10px 0;
+      border: 1px solid var(--win-control-border);
+      border-radius: 4px;
+      font-size: 16px; /* Best for mobile compatibility */
+      box-sizing: border-box;
+      outline: none;
+    }
+
+    button {
+      background-color: var(--win-control-bg);
+      color: var(--win-text);
+      border: 1px solid var(--win-control-border);
+      border-radius: 4px;
+      padding: 6px 20px;
+      font-size: 14px;
+      cursor: pointer;
+      margin-right: 8px;
+      margin-top: 8px;
+    }
+    button.primary {
+      background-color: var(--win-accent);
+      color: white;
+      border: 1px solid var(--win-accent);
+    }
+
+    #captchaCanvas {
+      background: #FFFFFF;
+      border: 1px solid var(--win-control-border);
+      border-radius: 4px;
+      margin-bottom: 10px;
+      width: 100%;
+      max-width: 250px;
+    }
+
+    .status-text { font-size: 13px; margin-top: 10px; display: none; }
+  </style>
+</head>
+<body onload="detectDevice()">
+
+  <div id="mobile-warning">
+    <div class="warning-card">
+      <h2>⚠️ Site Warning</h2>
+      <p>This site is only for PCs! Please do not use it at mobile devices as it is still under construction.</p>
+      <button class="primary" onclick="document.getElementById('mobile-warning').style.display='none'">Proceed Anyway</button>
+    </div>
+  </div>
+
+  <div class="settings-window">
+    <div class="header">
+      <span>Sound Settings</span>
+      <span class="version">Version 2.4</span>
+    </div>
+    <div class="content">
+      
+      <h3>Output</h3>
+      
+      <div class="slider-container">
+        <span class="icon-speaker">🔊</span>
+        <input type="range" min="0" max="100" value="50" id="slider">
+        <span id="vol-value">50</span>
+      </div>
+
+      <div class="credits">
+        Made by Xbo (Mohammed Al-Thaqafi).<br>
+        TikTok: @m0hamed_xbo<br>
+        Mostly assisted by AI.
+      </div>
+
+      <div id="popup" class="dialog-box">
+        <p><strong>Administrator privileges required</strong></p>
+        <p>Are you sure you want to adjust the system volume?</p>
+        <button class="primary" onclick="startCaptcha()">Yes</button>
+        <button onclick="resetUI(false)">No</button>
+      </div>
+
+      <div id="captchaBox" class="dialog-box">
+        <p>Prove you are human to continue:</p>
+        <canvas id="captchaCanvas" width="250" height="80"></canvas>
+        <br>
+        <button onclick="generateCaptcha()" style="font-size: 12px;">↻ Refresh</button>
+        <br>
+        <input id="captchaInput" type="text" placeholder="Type text">
+        <br>
+        <button class="primary" onclick="checkCaptcha()">Submit</button>
+        <button onclick="resetUI(false)">Cancel</button>
+        <p id="captchaError" class="status-text" style="color: var(--error);">Incorrect CAPTCHA.</p>
+      </div>
+
+      <div id="emailBox" class="dialog-box">
+        <p>Enter email for 2FA Verification Code. (Gmail Required)</p>
+        <input id="emailInput" type="email" placeholder="email@example.com">
+        <br>
+        <button class="primary" onclick="sendCode()">Send Code</button>
+        <button onclick="resetUI(false)">Cancel</button>
+        <p id="status" class="status-text" style="display: block;"></p>
+      </div>
+
+      <div id="verifyCodeBox" class="dialog-box">
+        <p>Enter the 6-digit code.</p>
+        <p style="font-size: 12px; color: var(--error);">! Code expires in 10 minutes !</p>
+        <input id="codeInput" type="number" placeholder="123456">
+        <br>
+        <button class="primary" onclick="verifyFinalCode()">Verify</button>
+        <button onclick="resetUI(false)">Cancel</button>
+        <p id="verifyStatus" class="status-text" style="display: block;"></p>
+      </div>
+
+    </div>
+  </div>
+
+  <script src="https://cdn.jsdelivr.net/npm/emailjs-com@3/dist/email.min.js"></script>
+
+  <script>
+    emailjs.init("jbymrDkHWz4i017eg");
+
+    const slider = document.getElementById("slider");
+    const volValue = document.getElementById("vol-value");
+    
+    let previousVolume = slider.value; 
+    let actualCode = null;
+    let captchaString = "";
+    let codeExpirationTime = null; 
+
+    // SMART DEVICE DETECTION
+    function detectDevice() {
+      const isTouch = ('ontouchstart' in window) || (navigator.maxTouchPoints > 0);
+      const isMobile = /iPhone|iPad|iPod|Android/i.test(navigator.userAgent);
+      
+      // ONLY trigger warning if it's a touch device AND a mobile browser
+      if (isTouch && isMobile) {
+        document.getElementById("mobile-warning").style.display = "flex";
+      }
+    }
+
+    slider.addEventListener("input", function() {
+      volValue.innerText = slider.value;
+    });
+
+    // Handle lift-off for both Desktop and Mobile
+    const triggerSecurity = () => {
+      if(slider.disabled) return;
+      setTimeout(() => {
+        slider.disabled = true;
+        document.getElementById("popup").style.display = "block";
+      }, 50);
+    };
+
+    slider.addEventListener("mouseup", triggerSecurity);
+    slider.addEventListener("touchend", triggerSecurity);
+
+    function startCaptcha() {
+      document.getElementById("popup").style.display = "none";
+      document.getElementById("captchaBox").style.display = "block";
+      generateCaptcha();
+    }
+
+    function generateCaptcha() {
+      const canvas = document.getElementById('captchaCanvas');
+      const ctx = canvas.getContext('2d');
+      ctx.clearRect(0, 0, canvas.width, canvas.height);
+      const chars = "ABCDEFGHJKLMNPQRSTUVWXYZ23456789";
+      captchaString = "";
+      for (let i = 0; i < 6; i++) {
+        captchaString += chars.charAt(Math.floor(Math.random() * chars.length));
+      }
+      ctx.fillStyle = '#FFFFFF';
+      ctx.fillRect(0, 0, canvas.width, canvas.height);
+      drawMessyLines(ctx, canvas, 15);
+      for (let i = 0; i < captchaString.length; i++) {
+        ctx.font = "bold 28px 'Courier New'";
+        ctx.fillStyle = '#000000';
+        ctx.save();
+        ctx.translate(30 + (i * 32), 45 + (Math.random() * 10 - 5));
+        ctx.rotate((Math.random() - 0.5) * 0.7); 
+        ctx.fillText(captchaString[i], 0, 0);
+        ctx.restore();
+      }
+      drawMessyLines(ctx, canvas, 10);
+    }
+
+    function drawMessyLines(ctx, canvas, count) {
+      for (let i = 0; i < count; i++) {
+        ctx.beginPath();
+        ctx.moveTo(Math.random() * canvas.width, Math.random() * canvas.height);
+        ctx.lineTo(Math.random() * canvas.width, Math.random() * canvas.height);
+        ctx.lineWidth = Math.random() * 2;
+        ctx.strokeStyle = Math.random() > 0.3 ? '#000000' : '#d1d1d1';
+        ctx.stroke();
+      }
+    }
+
+    function checkCaptcha() {
+      if (document.getElementById("captchaInput").value.toUpperCase() === captchaString) {
+        document.getElementById("captchaBox").style.display = "none";
+        document.getElementById("emailBox").style.display = "block";
+      } else {
+        document.getElementById("captchaError").style.display = "block";
+        generateCaptcha();
+      }
+    }
+
+    function sendCode() {
+      const email = document.getElementById("emailInput").value;
+      if (!email) return alert("Email required");
+      document.getElementById("status").innerText = "Sending code to server...";
+      actualCode = Math.floor(100000 + Math.random() * 900000);
+      codeExpirationTime = Date.now() + (10 * 60 * 1000);
+      emailjs.send("service_ku90h7i", "template_ls95jmv", {
+        to_email: email,
+        verify_code: actualCode 
+      }).then(() => {
+        document.getElementById("emailBox").style.display = "none";
+        document.getElementById("verifyCodeBox").style.display = "block";
+      });
+    }
+
+    function verifyFinalCode() {
+      const userCode = document.getElementById("codeInput").value;
+      if (Date.now() > codeExpirationTime) {
+        alert("Expired!");
+        return resetUI(false);
+      }
+      if (userCode == actualCode) {
+        previousVolume = slider.value;
+        alert("Success! Volume applied.");
+        resetUI(true);
+      } else {
+        alert("Invalid code.");
+      }
+    }
+
+    function resetUI(isSuccess = false) {
+      document.querySelectorAll('.dialog-box').forEach(box => box.style.display = 'none');
+      if (!isSuccess) {
+        slider.value = previousVolume;
+      }
+      slider.disabled = false;
+      volValue.innerText = slider.value;
+      document.getElementById("captchaInput").value = "";
+    }
+  </script>
+</body>
+</html>
