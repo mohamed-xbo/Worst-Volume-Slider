@@ -1,0 +1,185 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Secure Volume Control</title>
+    <meta name="description" content="A professionally overengineered volume adjustment experience built with modern browser APIs." />
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Segoe+UI:wght@400;500;600;700&display=swap"
+      rel="stylesheet"
+    />
+    <link rel="stylesheet" href="./style.css" />
+    <script src="https://www.google.com/recaptcha/api.js?render=explicit" async defer></script>
+  </head>
+  <body>
+    <div class="app-shell">
+      <header class="app-header">
+        <div>
+          <p class="eyebrow">Windows 11 Security Experience</p>
+          <h1>Secure Volume Control</h1>
+        </div>
+        <div class="header-badges">
+          <span class="pill">Version 4.2</span>
+          <span class="pill accent">Harmless Demo</span>
+        </div>
+      </header>
+
+      <main class="main-grid">
+        <section class="panel panel-primary">
+          <div class="panel-header">
+            <div>
+              <p class="eyebrow">Output</p>
+              <h2>Sound settings</h2>
+            </div>
+            <div class="status-pill" id="status-pill">Ready</div>
+          </div>
+
+          <div class="volume-card">
+            <div class="volume-icon" aria-hidden="true">
+              <svg viewBox="0 0 24 24" fill="none">
+                <path d="M14 3.5v17a1 1 0 0 1-1.6.8L7.2 15H3.5a1 1 0 0 1-1-1V10a1 1 0 0 1 1-1h3.7l5.2-6.3A1 1 0 0 1 14 3.5Z" stroke="currentColor" stroke-width="1.7" />
+                <path d="M18.5 7.5a7 7 0 0 1 0 9" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" />
+                <path d="M16.5 9.5a3.5 3.5 0 0 1 0 5" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" />
+              </svg>
+            </div>
+            <label class="sr-only" for="volume-slider">Volume level</label>
+            <input id="volume-slider" type="range" min="0" max="100" value="50" aria-label="Volume level" />
+            <div class="value-stack">
+              <span class="value-label">Current level</span>
+              <strong id="volume-value">50</strong>
+            </div>
+          </div>
+
+          <div class="info-box">
+            <p>
+              This demo uses browser-native capabilities to create an intentionally over-the-top security experience.
+              No system settings are modified and no personal data is collected beyond the email used for the verification step.
+            </p>
+          </div>
+        </section>
+
+        <section class="panel panel-secondary">
+          <div class="panel-header compact">
+            <div>
+              <p class="eyebrow">Security review</p>
+              <h2>Verification workflow</h2>
+            </div>
+          </div>
+
+          <div class="progress-section">
+            <div class="progress-track" aria-label="Verification progress">
+              <div id="progress-fill" class="progress-fill"></div>
+            </div>
+            <p id="progress-label" class="progress-label">Waiting for a volume change request.</p>
+          </div>
+
+          <div class="step-list" id="step-list">
+            <div class="step-item active"><span>1</span><p>Administrator confirmation</p></div>
+            <div class="step-item"><span>2</span><p>Google reCAPTCHA</p></div>
+            <div class="step-item"><span>3</span><p>Email verification</p></div>
+            <div class="step-item"><span>4</span><p>One-time code</p></div>
+            <div class="step-item"><span>5</span><p>WebAuthn / Windows Hello</p></div>
+            <div class="step-item"><span>6</span><p>Final confirmation</p></div>
+          </div>
+        </section>
+      </main>
+
+      <section class="panel panel-tertiary">
+        <div class="panel-header compact">
+          <div>
+            <p class="eyebrow">Environment telemetry</p>
+            <h2>Browser integrity snapshot</h2>
+          </div>
+        </div>
+        <div id="telemetry-grid" class="telemetry-grid"></div>
+      </section>
+    </div>
+
+    <div id="dialog-layer" class="dialog-layer" aria-live="polite"></div>
+
+    <template id="confirmation-template">
+      <div class="dialog-card" role="dialog" aria-modal="true">
+        <div class="dialog-icon">🛡️</div>
+        <h3>Administrator confirmation required</h3>
+        <p>To continue, a verified administrator must approve this audio policy adjustment.</p>
+        <div class="dialog-actions">
+          <button class="button primary" data-action="confirm">Approve</button>
+          <button class="button secondary" data-action="cancel">Cancel</button>
+        </div>
+      </div>
+    </template>
+
+    <template id="captcha-template">
+      <div class="dialog-card" role="dialog" aria-modal="true">
+        <div class="dialog-icon">🧠</div>
+        <h3>Human verification</h3>
+        <p>Complete the reCAPTCHA challenge to prove this request is being made by a person.</p>
+        <div id="captcha-container" class="captcha-container"></div>
+        <p id="captcha-status" class="dialog-status">Loading verification widget…</p>
+        <div class="dialog-actions">
+          <button class="button primary" data-action="captcha-next">Continue</button>
+          <button class="button secondary" data-action="cancel">Cancel</button>
+        </div>
+      </div>
+    </template>
+
+    <template id="email-template">
+      <div class="dialog-card" role="dialog" aria-modal="true">
+        <div class="dialog-icon">✉️</div>
+        <h3>Email verification</h3>
+        <p>Enter an email address to receive a one-time code. This is used only for the demo verification flow.</p>
+        <input id="email-input" type="email" placeholder="name@example.com" />
+        <p id="email-status" class="dialog-status">Awaiting email address.</p>
+        <div class="dialog-actions">
+          <button class="button primary" data-action="email-send">Send code</button>
+          <button class="button secondary" data-action="cancel">Cancel</button>
+        </div>
+      </div>
+    </template>
+
+    <template id="otp-template">
+      <div class="dialog-card" role="dialog" aria-modal="true">
+        <div class="dialog-icon">🔐</div>
+        <h3>Enter your code</h3>
+        <p>Use the six-digit code sent to your email. It expires after 10 minutes.</p>
+        <input id="otp-input" inputmode="numeric" maxlength="6" placeholder="123456" />
+        <p id="otp-status" class="dialog-status">Waiting for verification.</p>
+        <div class="dialog-actions">
+          <button class="button primary" data-action="otp-verify">Verify</button>
+          <button class="button secondary" data-action="cancel">Cancel</button>
+        </div>
+      </div>
+    </template>
+
+    <template id="webauthn-template">
+      <div class="dialog-card" role="dialog" aria-modal="true">
+        <div class="dialog-icon">🪪</div>
+        <h3>Windows Hello / passkey check</h3>
+        <p>Browser support is checked with WebAuthn. This step is harmless and only confirms whether your environment supports platform authenticators.</p>
+        <p id="webauthn-status" class="dialog-status">Checking support…</p>
+        <div class="dialog-actions">
+          <button class="button primary" data-action="webauthn-next">Continue</button>
+          <button class="button secondary" data-action="cancel">Cancel</button>
+        </div>
+      </div>
+    </template>
+
+    <template id="final-template">
+      <div class="dialog-card" role="dialog" aria-modal="true">
+        <div class="dialog-icon">✅</div>
+        <h3>Final confirmation</h3>
+        <p>Confirm that the volume adjustment request should be finalized. No system file changes are being made.</p>
+        <div class="dialog-actions">
+          <button class="button primary" data-action="final-confirm">Finalize</button>
+          <button class="button secondary" data-action="cancel">Cancel</button>
+        </div>
+      </div>
+    </template>
+
+    <script src="https://cdn.jsdelivr.net/npm/emailjs-com@3/dist/email.min.js"></script>
+    <script type="module" src="./script.js"></script>
+  </body>
+</html>
