@@ -1,0 +1,8 @@
+# Ignore Cloudflare Wrangler build/cache artifacts
+cloudflare-worker/.wrangler/
+
+# Node dependency folders (if you ever add a package.json)
+node_modules/
+
+dist/
+.DS_Store
