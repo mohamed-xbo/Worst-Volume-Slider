@@ -258,7 +258,7 @@ async function continueAfterEmailStep() {
   }
   showDialog('otp');
   const otpStatus = document.getElementById('otp-status');
-  otpStatus.textContent = `Use code ${state.emailCode} if you are testing locally.`;
+  otpStatus.textContent = 'Enter the code sent to your email to continue. \n ! CODE EXPIRES IN 10 MINUTES !';
 }
 
 async function continueAfterOtpStep() {
