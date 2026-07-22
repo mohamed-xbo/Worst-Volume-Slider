@@ -136,9 +136,10 @@
       <div class="dialog-card" role="dialog" aria-modal="true">
         <div class="dialog-icon">🪪</div>
         <h3>Windows Hello / passkey check</h3>
-        <p>Browser support is checked with WebAuthn. This step is harmless and only confirms whether your environment supports platform authenticators.</p>
+        <p>Browser support is checked with WebAuthn. This step is required when a platform authenticator is available.</p>
         <p id="webauthn-status" class="dialog-status">Checking support…</p>
         <div class="dialog-actions">
+          <button class="button primary" data-action="webauthn-retry">Retry passkey</button>
           <button class="button primary" data-action="webauthn-next">Continue</button>
           <button class="button secondary" data-action="cancel">Cancel</button>
         </div>

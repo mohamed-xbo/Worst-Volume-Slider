@@ -2,7 +2,7 @@ import { animateProgress, rippleButton, animateRollback } from './animations.js'
 import { initializeCaptchaFlow } from './captcha.js';
 import { requestEmailVerification } from './email.js';
 import { collectTelemetry, renderTelemetry } from './security.js';
-import { runWebAuthnFlow } from './webauthn.js';
+import { runWebAuthnFlow, isPasskeySupported } from './webauthn.js';
 
 window.__EMAILJS_SERVICE_ID__ = 'service_ku90h7i';
 window.__EMAILJS_TEMPLATE_ID__ = 'template_ls95jmv';
@@ -20,6 +20,8 @@ const state = {
   emailCode: null,
   codeExpiresAt: null,
   activeDialog: null,
+  emailSendPending: false,
+  passkeyRequired: false,
 };
 
 const slider = document.getElementById('volume-slider');
@@ -59,6 +61,34 @@ function bindEvents() {
     state.volume = Number(slider.value);
     volumeValue.textContent = state.volume;
     showAdminPrompt();
+  });
+
+  slider.addEventListener('pointerdown', () => {
+    if (!state.locked) {
+      state.previousVolume = Number(slider.value);
+      slider.dataset.previousValue = String(state.previousVolume);
+    }
+  });
+
+  slider.addEventListener('keydown', () => {
+    if (!state.locked) {
+      state.previousVolume = Number(slider.value);
+      slider.dataset.previousValue = String(state.previousVolume);
+    }
+  });
+
+  slider.addEventListener('mousedown', () => {
+    if (!state.locked) {
+      state.previousVolume = Number(slider.value);
+      slider.dataset.previousValue = String(state.previousVolume);
+    }
+  });
+
+  slider.addEventListener('touchstart', () => {
+    if (!state.locked) {
+      state.previousVolume = Number(slider.value);
+      slider.dataset.previousValue = String(state.previousVolume);
+    }
   });
 
   slider.addEventListener('pointerup', () => {
@@ -109,8 +139,6 @@ function setStatus(text) {
 function showAdminPrompt() {
   if (state.locked) return;
   state.locked = true;
-  state.previousVolume = Number(slider.value);
-  slider.dataset.previousValue = String(state.previousVolume);
   setStatus('Preparing secure authorization workflow…');
   void beginVerificationFlow();
 }
@@ -163,21 +191,32 @@ async function handleDialogAction(event) {
   }
 
   if (action === 'email-send') {
+    if (state.emailSendPending) return;
+
     const emailInput = document.getElementById('email-input');
+    const sendButton = button;
     if (!emailInput.value.trim()) {
       document.getElementById('email-status').textContent = 'Please enter a valid email address.';
       return;
     }
 
-    const verification = await requestEmailVerification({ email: emailInput.value.trim() });
-    state.emailCode = verification.code;
-    state.codeExpiresAt = verification.expiresAt;
-    document.getElementById('email-status').textContent = verification.message;
+    state.emailSendPending = true;
+    sendButton.disabled = true;
+    try {
+      const verification = await requestEmailVerification({ email: emailInput.value.trim() });
+      state.emailCode = verification.code;
+      state.codeExpiresAt = verification.expiresAt;
+      document.getElementById('email-status').textContent = verification.message;
 
-    if (verification.success) {
-      hideDialog();
-      await continueAfterEmailStep();
+      if (verification.success) {
+        hideDialog();
+        await continueAfterEmailStep();
+      }
+    } finally {
+      state.emailSendPending = false;
+      sendButton.disabled = false;
     }
+
     return;
   }
 
@@ -197,7 +236,20 @@ async function handleDialogAction(event) {
     return;
   }
 
+  if (action === 'webauthn-retry') {
+    await triggerWebAuthnFlow();
+    return;
+  }
+
   if (action === 'webauthn-next') {
+    if (state.passkeyRequired && !state.webAuthnVerified) {
+      const status = document.getElementById('webauthn-status');
+      if (status) {
+        status.textContent = 'Please complete the passkey prompt before continuing.';
+      }
+      return;
+    }
+
     hideDialog();
     await continueAfterWebAuthnStep();
     return;
@@ -267,11 +319,42 @@ async function continueAfterOtpStep() {
   if (progressFill) {
     await animateProgress(progressFill, 90);
   }
-  showDialog('webauthn');
 
+  const passkeySupported = await isPasskeySupported();
+  if (!passkeySupported) {
+    setStatus('Platform authenticator support is unavailable. Continuing without passkey.');
+    await continueAfterWebAuthnStep();
+    return;
+  }
+
+  state.passkeyRequired = true;
+  state.webAuthnVerified = false;
+  showDialog('webauthn');
+  await triggerWebAuthnFlow();
+}
+
+async function triggerWebAuthnFlow() {
   const statusElement = document.getElementById('webauthn-status');
+  const continueButton = document.querySelector('button[data-action="webauthn-next"]');
+  const retryButton = document.querySelector('button[data-action="webauthn-retry"]');
+
+  if (continueButton) continueButton.disabled = true;
+  if (retryButton) retryButton.disabled = true;
+
   const webAuthnResult = await runWebAuthnFlow();
-  statusElement.textContent = webAuthnResult.message;
+  if (statusElement) {
+    statusElement.textContent = webAuthnResult.message;
+  }
+
+  if (webAuthnResult.supported) {
+    state.webAuthnVerified = true;
+    if (continueButton) continueButton.disabled = false;
+    if (retryButton) retryButton.disabled = false;
+  } else {
+    state.webAuthnVerified = false;
+    if (continueButton) continueButton.disabled = true;
+    if (retryButton) retryButton.disabled = false;
+  }
 }
 
 async function continueAfterWebAuthnStep() {
@@ -282,6 +365,7 @@ async function continueAfterWebAuthnStep() {
   }
   showDialog('final');
 }
+
 
 async function completeFlow() {
   updateStep(6);
@@ -311,9 +395,13 @@ async function completeFlow() {
 }
 
 function cancelFlow() {
+  state.volume = state.previousVolume;
   slider.value = String(state.previousVolume);
   renderVolume();
   state.locked = false;
+  state.emailSendPending = false;
+  state.passkeyRequired = false;
+  state.webAuthnVerified = false;
   animateRollback(slider);
   setStatus('Request cancelled. The slider rolled back to the previous value.');
   statusPill.textContent = 'Cancelled';

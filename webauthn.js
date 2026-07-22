@@ -1,3 +1,15 @@
+export async function isPasskeySupported() {
+  if (!window.PublicKeyCredential || !window.isSecureContext) {
+    return false;
+  }
+
+  try {
+    return await PublicKeyCredential.isUserVerifyingPlatformAuthenticatorAvailable();
+  } catch {
+    return false;
+  }
+}
+
 export async function runWebAuthnFlow() {
   if (!window.PublicKeyCredential || !window.isSecureContext) {
     return {
@@ -6,13 +18,7 @@ export async function runWebAuthnFlow() {
     };
   }
 
-  let available = false;
-  try {
-    available = await PublicKeyCredential.isUserVerifyingPlatformAuthenticatorAvailable();
-  } catch {
-    available = false;
-  }
-
+  const available = await isPasskeySupported();
   if (!available) {
     return {
       supported: false,
@@ -45,7 +51,7 @@ export async function runWebAuthnFlow() {
 
     if (!credential) {
       return {
-        supported: true,
+        supported: false,
         message: 'Windows Hello prompt was shown, but no credential was created.',
       };
     }
