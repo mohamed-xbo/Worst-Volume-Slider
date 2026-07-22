@@ -63,6 +63,6 @@ export async function runWebAuthnFlow() {
 
   return {
     supported: true,
-    message: 'WebAuthn is supported. This demo uses the API only to surface the capability.',
+    message: 'WebAuthn is supported. This uses the API only to surface the capability.',
   };
 }

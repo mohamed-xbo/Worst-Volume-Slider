@@ -292,7 +292,7 @@ async function completeFlow() {
   state.volume = Number(slider.value);
   statusPill.textContent = 'Approved';
   if (progressLabel) {
-    progressLabel.textContent = `Volume change to ${state.volume} is now approved. This harmless demo does not alter the system volume.`;
+    progressLabel.textContent = `Volume change to ${state.volume} is now approved. This harmless flow does not alter the system volume.`;
   }
   hideDialog();
   state.locked = false;

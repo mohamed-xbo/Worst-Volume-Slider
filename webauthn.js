@@ -2,7 +2,7 @@ export async function runWebAuthnFlow() {
   if (!window.PublicKeyCredential) {
     return {
       supported: false,
-      message: 'WebAuthn is not available in this browser, so the demo reports that the platform authenticator is unavailable.',
+      message: 'WebAuthn is not available in this browser, so the flow reports that the platform authenticator is unavailable.',
     };
   }
 

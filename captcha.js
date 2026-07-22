@@ -44,7 +44,7 @@ export async function initializeCaptchaFlow({ container, statusElement }) {
   try {
     await loadRecaptchaScript();
   } catch (error) {
-    statusElement.textContent = 'reCAPTCHA was not available, so the demo continues in a transparent local mode.';
+    statusElement.textContent = 'reCAPTCHA was not available, so the flow continues in a transparent local mode.';
     return true;
   }
 
@@ -78,13 +78,13 @@ export async function initializeCaptchaFlow({ container, statusElement }) {
         resolve(false);
       },
       'error-callback': () => {
-        statusElement.textContent = 'Captcha encountered an error. Continuing in demo mode.';
+        statusElement.textContent = 'Captcha encountered an error. Continuing locally.';
         resolve(true);
       },
     });
 
     if (widgetId === undefined) {
-      statusElement.textContent = 'The widget could not be initialized; proceeding in demo mode.';
+      statusElement.textContent = 'The widget could not be initialized; proceeding locally.';
       resolve(true);
     }
   });

@@ -25,7 +25,7 @@ export async function requestEmailVerification({ email }) {
         success: true,
         code,
         expiresAt,
-        message: 'A real EmailJS request was sent.',
+        message: 'A real EmailJS request was sent. The code is shown locally.',
       };
     } catch (error) {
       return {
@@ -41,6 +41,6 @@ export async function requestEmailVerification({ email }) {
     success: true,
     code,
     expiresAt,
-    message: 'EmailJS is not configured in this local demo, so a harmless fallback code is shown in-browser.',
+    message: 'EmailJS is not configured in this local environment, so a harmless fallback code is shown in-browser.',
   };
 }

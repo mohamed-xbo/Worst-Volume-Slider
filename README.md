@@ -84,7 +84,7 @@ Then visit `http://localhost:8000`.
 
 ## License
 
-This demo is for educational and entertainment purposes. It is intentionally harmless and does not modify your system or collect sensitive data beyond the email used for the demo verification flow.
+This project is for educational and entertainment purposes. It is intentionally harmless and does not modify your system or collect sensitive data beyond the email used for the verification flow.
 
 ## Screenshots
 
