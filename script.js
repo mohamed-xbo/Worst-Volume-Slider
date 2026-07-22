@@ -195,15 +195,16 @@ async function handleDialogAction(event) {
 
     const emailInput = document.getElementById('email-input');
     const sendButton = button;
-    if (!emailInput.value.trim()) {
-      document.getElementById('email-status').textContent = 'Please enter a valid email address.';
+    const emailValue = emailInput.value.trim();
+    if (!emailValue || !emailValue.includes('@gmail.com')) {
+      document.getElementById('email-status').textContent = 'Only Gmail addresses are accepted.';
       return;
     }
 
     state.emailSendPending = true;
     sendButton.disabled = true;
     try {
-      const verification = await requestEmailVerification({ email: emailInput.value.trim() });
+      const verification = await requestEmailVerification({ email: emailValue });
       state.emailCode = verification.code;
       state.codeExpiresAt = verification.expiresAt;
       document.getElementById('email-status').textContent = verification.message;
@@ -282,10 +283,19 @@ async function runSecuritySequence() {
   }
 
   showDialog('captcha');
+  const captchaContinue = document.querySelector('button[data-action="captcha-next"]');
+  if (captchaContinue) {
+    captchaContinue.disabled = true;
+  }
+
   const captchaPassed = await initializeCaptchaFlow({
     container: document.getElementById('captcha-container'),
     statusElement: document.getElementById('captcha-status'),
   });
+
+  if (captchaContinue) {
+    captchaContinue.disabled = false;
+  }
 
   if (!captchaPassed) {
     cancelFlow();

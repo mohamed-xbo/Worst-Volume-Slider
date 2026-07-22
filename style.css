@@ -354,6 +354,18 @@ input[type='range']:disabled {
   line-height: 1.5;
 }
 
+.settings-credits {
+  margin-top: 16px;
+  padding: 12px 14px;
+  border-radius: 12px;
+  background: rgba(148, 163, 184, 0.12);
+  border: 1px solid rgba(148, 163, 184, 0.24);
+  color: var(--text-muted);
+  font-size: 0.9rem;
+  line-height: 1.5;
+  white-space: pre-wrap;
+}
+
 .telemetry-grid {
   display: grid;
   gap: 12px;
