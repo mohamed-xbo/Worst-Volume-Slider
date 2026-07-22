@@ -82,6 +82,25 @@ python -m http.server 8000
 
 Then visit `http://localhost:8000`.
 
+## GitHub Pages Deployment
+
+This repository is configured to deploy automatically using GitHub Pages with the workflow in `.github/workflows/github-pages.yml`.
+
+1. Push the `main` branch to GitHub.
+2. Open the repository on GitHub and go to `Settings` > `Pages`.
+3. Under `Build and deployment`, select `GitHub Actions` as the source if it is not already selected.
+4. Save the settings and wait for the workflow run to complete.
+5. The site should publish from the `main` branch root and become available at:
+
+   `https://mohamed-xbo.github.io/Worst-Volume-Slider`
+
+When the workflow succeeds, GitHub Pages will serve the app automatically. No separate `gh-pages` branch is required.
+
+## Notes
+
+- The email verification flow only accepts Gmail addresses.
+- The reCAPTCHA and EmailJS steps are controlled by the GitHub Pages deployment workflow and the configuration variables described above.
+
 ## License
 
 This project is for educational and entertainment purposes. It is intentionally harmless and does not modify your system or collect sensitive data beyond the email used for the verification flow.
