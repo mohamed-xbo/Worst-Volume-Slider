@@ -25,7 +25,7 @@ export async function requestEmailVerification({ email }) {
         success: true,
         code,
         expiresAt,
-        message: 'A real EmailJS request was sent. The code is shown locally for the demo.',
+        message: 'A real EmailJS request was sent.',
       };
     } catch (error) {
       return {
