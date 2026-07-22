@@ -258,7 +258,7 @@ async function continueAfterEmailStep() {
   }
   showDialog('otp');
   const otpStatus = document.getElementById('otp-status');
-  otpStatus.textContent = 'Enter the code sent to your email to continue. \n ! CODE EXPIRES IN 10 MINUTES !';
+  otpStatus.innerHTML = 'Enter the code sent to your email to continue.<br><span class="otp-expiry">! CODE EXPIRES IN 10 MINUTES !</span>';
 }
 
 async function continueAfterOtpStep() {

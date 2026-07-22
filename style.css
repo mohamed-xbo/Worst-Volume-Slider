@@ -497,6 +497,13 @@ input[inputmode='numeric'] {
   font-size: 0.95rem;
 }
 
+.otp-expiry {
+  color: #d92b2b;
+  font-weight: 700;
+  display: block;
+  margin-top: 6px;
+}
+
 .captcha-container {
   margin-top: 12px;
   min-height: 78px;
